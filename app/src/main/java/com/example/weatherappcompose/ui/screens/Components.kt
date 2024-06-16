@@ -235,7 +235,7 @@ fun Greet(showSearchField: MutableState<Boolean>,weatherViewModel : WeatherViewM
 @Composable
 fun WeatherForecastCard(weatherViewModel: WeatherViewModel) {
 
-    val weatherForecast = weatherViewModel.forecastData.collectAsState().value.data?.list
+    val weatherForecast = weatherViewModel.forecastData.collectAsState().value?.list
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -245,7 +245,6 @@ fun WeatherForecastCard(weatherViewModel: WeatherViewModel) {
         if (weatherForecast != null) {
 
             items(weatherForecast) {
-                val a = it.weather[0].icon
                 ForecastWeatherItem(it)
 
 

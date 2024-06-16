@@ -1,10 +1,8 @@
 package com.example.weatherappcompose.ui.screens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,18 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,36 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.weatherappcompose.R
-import com.example.weatherappcompose.data.Response
-import com.example.weatherappcompose.data.api.APIInstance
-import com.example.weatherappcompose.data.repos.WeatherRepoImpl
 import com.example.weatherappcompose.presentation.WeatherViewModel
-import com.example.weatherappcompose.ui.models.weather.WeatherData
-
-@Composable
-fun HomePreview(weatherViewModel: WeatherViewModel) {
-    val res = weatherViewModel.weatherData.collectAsState().value
-
-    when (res) {
-        is Response.Loading -> {
-            CircularProgressIndicator()
-        }
-        is Response.Error -> {
-            Text("Error loading weather data")
-        }
-        is Response.Success -> {
-            App(modifier = Modifier, weatherViewModel = weatherViewModel)
-            Toast.makeText(LocalContext.current, res.data.toString(), Toast.LENGTH_SHORT).show()
-        }
-        else -> {
-            Text("Unknown state")
-        }
-    }
-}
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,18 +57,19 @@ fun App(modifier: Modifier = Modifier, weatherViewModel: WeatherViewModel) {
             val weatherCondition = remember {
                 mutableStateOf("N/A")
             }
-            val a = weatherViewModel.weatherData.collectAsState().value.data
+            val a = weatherViewModel.weatherData.collectAsState().value
             val context = LocalContext.current
+
             try {
                 if (a != null) {
-                    temp.value = a.main.temp.minus(273.15).toString().substring(0, 5)
-                    feelsLike.value = a.main.feels_like.minus(273.15).toString().substring(0, 5)
-                    weatherCondition.value = a.weather[0].main
+                    temp.value = a?.main?.temp?.minus(273.15).toString().substring(0,4)
+                    feelsLike.value = a?.main?.feels_like?.minus(273.15).toString().substring(0,4)
+                    weatherCondition.value = a?.weather?.get(0)?.main ?: "N/A"
                 }
-            } catch (e: Exception) {
-                Toast.makeText(context, "${e.message}", Toast.LENGTH_SHORT).show()
-            }
 
+            }catch (e:Exception){
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
             WeatherCard(temp.value, feelsLike.value, weatherCondition.value)
 
 
@@ -154,20 +120,20 @@ fun App(modifier: Modifier = Modifier, weatherViewModel: WeatherViewModel) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    val lat = weatherViewModel.weatherData.collectAsState().value.data?.coord?.lat
-                    val lon = weatherViewModel.weatherData.collectAsState().value.data?.coord?.lon
+                    val lat = weatherViewModel.weatherData.collectAsState().value?.coord?.lat
+                    val lon = weatherViewModel.weatherData.collectAsState().value?.coord?.lon
                     WeatherDetailsItem(
                         "Location",
                         "${lat.toString().substring(0, 4)}, ${lon.toString().substring(0, 4)}",
                         R.drawable.location
                     )
                     val windSpeed: Double? =
-                        weatherViewModel.weatherData.collectAsState().value.data?.wind?.speed
+                        weatherViewModel.weatherData.collectAsState().value?.wind?.speed
                     if (windSpeed != null) {
                         WeatherDetailsItem("Wind Speed", (windSpeed *  1.609).toString().substring(0,5), R.drawable.wind)
                     }
                     val humidity =
-                        weatherViewModel.weatherData.collectAsState().value.data?.main?.humidity
+                        weatherViewModel.weatherData.collectAsState().value?.main?.humidity
                     WeatherDetailsItem("Humidity", humidity.toString(), R.drawable.humidity)
 
                 }
@@ -177,10 +143,10 @@ fun App(modifier: Modifier = Modifier, weatherViewModel: WeatherViewModel) {
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     val pressure =
-                        weatherViewModel.weatherData.collectAsState().value.data?.main?.pressure
+                        weatherViewModel.weatherData.collectAsState().value?.main?.pressure
                     WeatherDetailsItem("Pressure", pressure.toString(), R.drawable.barometer)
                     val minTemp =
-                        weatherViewModel.weatherData.collectAsState().value.data?.main?.temp_min?.minus(
+                        weatherViewModel.weatherData.collectAsState().value?.main?.temp_min?.minus(
                             273.15
                         )
                     WeatherDetailsItem(
@@ -189,7 +155,7 @@ fun App(modifier: Modifier = Modifier, weatherViewModel: WeatherViewModel) {
                         R.drawable.snowflake
                     )
                     val maxTemp =
-                        weatherViewModel.weatherData.collectAsState().value.data?.main?.temp_max?.minus(
+                        weatherViewModel.weatherData.collectAsState().value?.main?.temp_max?.minus(
                             273.15
                         )
                     WeatherDetailsItem("Max Temp", maxTemp.toString().substring(0, 4)+"°C", R.drawable.hot)
