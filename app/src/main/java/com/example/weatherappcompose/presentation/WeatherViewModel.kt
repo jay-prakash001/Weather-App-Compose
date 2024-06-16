@@ -15,24 +15,21 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class WeatherViewModel(private val weatherRepo: WeatherRepo) : ViewModel() {
-    private val _cityName = MutableStateFlow("London")
+     val _cityName = MutableStateFlow("Raipur")
     val cityName = _cityName.asStateFlow()
-
-    private val _weatherInfo = MutableStateFlow<Response<WeatherData>>(Response.Loading())
-    val weatherInfo = _weatherInfo.asStateFlow()
-
-    private val _forecastInfo = MutableStateFlow<Response<ForecastData>>(Response.Loading())
-    val forecastInfo = _forecastInfo.asStateFlow()
-
 
 
     fun updateCity(newValue: String) {
-        _cityName.update { newValue }
+        _cityName.value = newValue
+
 
     }
+
     init {
-        fetchWeather()
-        fetchForecast()
+
+               fetchWeather()
+               fetchForecast()
+
     }
 
     private val _weatherData = MutableStateFlow<Response<WeatherData>>(Response.Loading())
@@ -46,7 +43,7 @@ class WeatherViewModel(private val weatherRepo: WeatherRepo) : ViewModel() {
 
             weatherRepo.getWeatherInfo(city)
                 .collect { response ->
-                    if (response.data != null){
+                    if (response.data != null) {
                         _weatherData.value = response
                     }
                 }
@@ -57,7 +54,7 @@ class WeatherViewModel(private val weatherRepo: WeatherRepo) : ViewModel() {
         viewModelScope.launch {
             weatherRepo.getForecastInfo(city)
                 .collect { response ->
-                    if(response.data != null){
+                    if (response.data != null) {
                         _forecastData.value = response
                     }
                 }
