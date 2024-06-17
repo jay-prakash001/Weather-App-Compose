@@ -1,7 +1,7 @@
 package com.example.weatherappcompose.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,11 +16,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,19 +36,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.example.weatherappcompose.R
-import com.example.weatherappcompose.data.api.APIInstance
-import com.example.weatherappcompose.data.repos.WeatherRepoImpl
 import com.example.weatherappcompose.presentation.WeatherViewModel
 import com.example.weatherappcompose.ui.models.forecast.WeatherItem
-import com.example.weatherappcompose.ui.models.weather.WeatherData
 
 @Composable
-fun InputCityName(modifier: Modifier = Modifier, weatherViewModel : WeatherViewModel, showSearchField: () -> Unit = {}) {
+fun InputCityName(
+    modifier: Modifier = Modifier,
+    weatherViewModel: WeatherViewModel,
+    showSearchField: () -> Unit = {}
+) {
     Box(
         modifier = modifier
             .padding(0.dp, 5.dp)
@@ -58,9 +64,10 @@ fun InputCityName(modifier: Modifier = Modifier, weatherViewModel : WeatherViewM
         val city = remember { mutableStateOf("") }
         OutlinedTextField(singleLine = true,
             value = city.value,
-            onValueChange = { city.value = it
+            onValueChange = {
+                city.value = it
 
-                            },
+            },
 
             leadingIcon = {
                 Icon(
@@ -70,7 +77,7 @@ fun InputCityName(modifier: Modifier = Modifier, weatherViewModel : WeatherViewM
             },
             trailingIcon = {
                 IconButton(onClick = {
-                        weatherViewModel.fetchWeather(city.value)
+                    weatherViewModel.fetchWeather(city.value)
                     weatherViewModel.updateCity(city.value)
                     showSearchField()
 
@@ -83,12 +90,15 @@ fun InputCityName(modifier: Modifier = Modifier, weatherViewModel : WeatherViewM
 }
 
 
-
 @Composable
 fun ForecastWeatherItem(weatherItem: WeatherItem) {
 
+
     Column(
         modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+
             .border(
                 1.dp,
                 MaterialTheme.colorScheme.primary,
@@ -96,6 +106,7 @@ fun ForecastWeatherItem(weatherItem: WeatherItem) {
             )
             .width(120.dp)
             .height(180.dp)
+
             .padding(10.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -108,8 +119,44 @@ fun ForecastWeatherItem(weatherItem: WeatherItem) {
         val temp = "%.2f".format((weatherItem.main.temp - 273.15))
         val feelsLike = "%.2f".format((weatherItem.main.feels_like - 273.15))
 
-        val imgState =
-        Image(painter = painterResource(id = R.drawable.clouds), contentDescription = "")
+
+        val imgSource = "https://openweathermap.org/img/wn/${weatherItem.weather[0].icon}@2x.png"
+
+
+        if (imgSource.isEmpty() || imgSource.isBlank()) {
+            Image(
+                painter = painterResource(id = R.drawable.clouds),
+                contentDescription = "",
+                modifier = Modifier
+
+
+                    // Adjust to control the overflow
+                    .size(100.dp, 100.dp)
+
+                // Adjust size as needed
+                , // Ensure the image can overflow
+                contentScale = ContentScale.Fit
+            )
+
+        } else {
+
+
+            Column {
+                AsyncImage(
+                    model = imgSource,
+                    contentDescription = "",
+                    modifier = Modifier
+                        // Adjust to control the overflow
+                        .size(100.dp, 100.dp)
+                        .clipToBounds() // Adjust size as needed
+                    , // Ensure the image can overflow
+                    contentScale = ContentScale.FillBounds
+//                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                )
+            }
+
+
+        }
         Text(
             text = "$temp°C/$feelsLike°C",
             style = MaterialTheme.typography.bodyMedium,
@@ -125,7 +172,12 @@ fun ForecastWeatherItem(weatherItem: WeatherItem) {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun WeatherCard(temp:String = "30",feelsLike:String = "32",weatherCondition:String = "Sunny") {
+fun WeatherCard(
+    temp: String = "30",
+    feelsLike: String = "32",
+    weatherCondition: String = "Sunny",
+    imgSource: String
+) {
     Card(
         onClick = { },
         modifier = Modifier
@@ -162,22 +214,52 @@ fun WeatherCard(temp:String = "30",feelsLike:String = "32",weatherCondition:Stri
                 )
             }
 
-            Image(
-                painter = painterResource(id = R.drawable.clouds),
-                contentDescription = "",
-                modifier = Modifier
-                    // Adjust to control the overflow
-                    .size(100.dp, 100.dp) // Adjust size as needed
-                , // Ensure the image can overflow
-                contentScale = ContentScale.Fit
-            )
+
+            if (imgSource.isEmpty() || imgSource.isBlank()) {
+                Image(
+                    painter = painterResource(id = R.drawable.clouds),
+                    contentDescription = "",
+                    modifier = Modifier
+                        // Adjust to control the overflow
+                        .size(100.dp, 100.dp) // Adjust size as needed
+                    , // Ensure the image can overflow
+                    contentScale = ContentScale.Fit
+                )
+
+            } else {
+
+
+                Column {
+                    AsyncImage(
+                        model = imgSource,
+                        contentDescription = "",
+                        modifier = Modifier
+                            // Adjust to control the overflow
+                            .size(100.dp, 100.dp)
+                            .clipToBounds() // Adjust size as needed
+                        , // Ensure the image can overflow
+                        contentScale = ContentScale.FillBounds,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+                    )
+                }
+
+
+            }
+
         }
 
+
     }
+
 }
 
+
 @Composable
-fun WeatherDetailsItem(name:String = "Name",value:String = "Value",icon:Int = R.drawable.clouds) {
+fun WeatherDetailsItem(
+    name: String = "Name",
+    value: String = "Value",
+    icon: Int = R.drawable.clouds
+) {
     Column(
         modifier = Modifier
             .padding(10.dp)
@@ -185,7 +267,11 @@ fun WeatherDetailsItem(name:String = "Name",value:String = "Value",icon:Int = R.
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(painter = painterResource(id = icon), contentDescription = "", modifier = Modifier.size(20.dp))
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = "",
+            modifier = Modifier.size(20.dp)
+        )
         Text(
             text = value, style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.SemiBold
@@ -198,9 +284,8 @@ fun WeatherDetailsItem(name:String = "Name",value:String = "Value",icon:Int = R.
 }
 
 
-
 @Composable
-fun Greet(showSearchField: MutableState<Boolean>,weatherViewModel : WeatherViewModel ) {
+fun Greet(showSearchField: MutableState<Boolean>, weatherViewModel: WeatherViewModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

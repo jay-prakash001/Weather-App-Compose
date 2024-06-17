@@ -70,7 +70,12 @@ fun App(modifier: Modifier = Modifier, weatherViewModel: WeatherViewModel) {
             }catch (e:Exception){
                 Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
             }
-            WeatherCard(temp.value, feelsLike.value, weatherCondition.value)
+//            val imgSourse = "http://openweathermap.org/img/w/${ a?.weather?.get(0)?.icon}.png"
+            val imgSource = "https://openweathermap.org/img/wn/${a?.weather?.get(0)?.icon}@2x.png"
+
+
+
+            WeatherCard(temp.value, feelsLike.value, weatherCondition.value,imgSource)
 
 
 //

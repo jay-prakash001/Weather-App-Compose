@@ -7,12 +7,14 @@ import com.example.weatherappcompose.data.Response
 import com.example.weatherappcompose.data.repos.WeatherRepo
 import com.example.weatherappcompose.ui.models.forecast.ForecastData
 import com.example.weatherappcompose.ui.models.weather.WeatherData
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class WeatherViewModel(private val weatherRepo: WeatherRepo) : ViewModel() {
-     private val _cityName = MutableStateFlow("Raipur")
+    private val _cityName = MutableStateFlow("Raipur")
     val cityName = _cityName.asStateFlow()
 
 
@@ -23,18 +25,25 @@ class WeatherViewModel(private val weatherRepo: WeatherRepo) : ViewModel() {
     }
 
 
-
     init {
-        fetchWeather()
-        fetchForecastData()
+
+        try {
+
+            fetchWeather(cityName.value)
+            fetchForecastData(cityName.value)
+        } catch (e: Exception) {
+            Log.d("viewModelTag", "${e.message}: ")
+        }
     }
+
     private val _weatherData = MutableStateFlow<WeatherData?>(null)
     val weatherData = _weatherData.asStateFlow()
 
-    private  val _forecastData = MutableStateFlow<ForecastData?>(null)
+    private val _forecastData = MutableStateFlow<ForecastData?>(null)
     val forecastData = _forecastData.asStateFlow()
 
-    fun fetchWeather(city : String = cityName.value) {
+
+    fun fetchWeather(city: String = cityName.value) {
         viewModelScope.launch {
             weatherRepo.getWeatherInfo(city).collect { res ->
                 when (res) {
@@ -44,25 +53,28 @@ class WeatherViewModel(private val weatherRepo: WeatherRepo) : ViewModel() {
                             _weatherData.value = it
                         }
                     }
-                    else->{
+
+                    else -> {
                         Log.d("WeatherViewModel", "fetchWeatherData: ${res.data.toString()}")
                     }
                 }
             }
         }
     }
-    fun fetchForecastData(city: String = cityName.value){
+
+    fun fetchForecastData(city: String = cityName.value) {
         viewModelScope.launch {
-            weatherRepo.getForecastInfo(city).collect(){
-                    res->
-                when(res){
+            weatherRepo.getForecastInfo(city).collect { res ->
+                when (res) {
 
                     is Response.Success -> {
                         res.data?.let {
                             _forecastData.value = it
                         }
                     }
-                    else->{
+
+                    else -> {
+                        Log.d("WeatherViewModel", "fetchWeatherData: ${res.data.toString()}")
 
                     }
                 }
