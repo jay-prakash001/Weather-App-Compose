@@ -24,152 +24,158 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.example.weatherappcompose.R
 import com.example.weatherappcompose.presentation.WeatherViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun App(modifier: Modifier = Modifier, weatherViewModel: WeatherViewModel) {
-        val showSearchField = remember {
-            mutableStateOf(false)
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    weatherViewModel: WeatherViewModel,
+    navController: NavHostController
+) {
+    val showSearchField = remember {
+        mutableStateOf(false)
+    }
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (showSearchField.value) {
+            InputCityName(weatherViewModel = weatherViewModel) {
+                showSearchField.value = false
+            }
         }
-        Column(
-            modifier = modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+        if (!showSearchField.value) {
+            Greet(showSearchField, weatherViewModel)
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        val temp = remember {
+            mutableStateOf("N/A")
+        }
+        val feelsLike = remember {
+            mutableStateOf("N/A")
+        }
+        val weatherCondition = remember {
+            mutableStateOf("N/A")
+        }
+        val a = weatherViewModel.weatherData.collectAsState().value
+        val context = LocalContext.current
+
+        try {
+            if (a != null) {
+                temp.value = a?.main?.temp?.minus(273.15).toString().substring(0, 4)
+                feelsLike.value = a?.main?.feels_like?.minus(273.15).toString().substring(0, 4)
+                weatherCondition.value = a?.weather?.get(0)?.main ?: "N/A"
+            }
+
+        } catch (e: Exception) {
+            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+        }
+        val imgSource = "https://openweathermap.org/img/wn/${a?.weather?.get(0)?.icon}@2x.png"
+
+        WeatherCard(temp.value, feelsLike.value, weatherCondition.value, imgSource)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            if (showSearchField.value) {
-                InputCityName(weatherViewModel = weatherViewModel) {
-                    showSearchField.value = false
-                }
+            TextButton(onClick = {
+                //detailed current weather information screen to be implemented
+
+            }) {
+                Text(
+                    text = "Today",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.inverseSurface,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
-            if (!showSearchField.value) {
-                Greet(showSearchField, weatherViewModel)
+            TextButton(onClick = {
+
+                navController.navigate("ForecastScreen")
+
+
+            }) {
+                Text(text = "Next 3 Days ->")
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            val temp = remember {
-                mutableStateOf("N/A")
-            }
-            val feelsLike = remember {
-                mutableStateOf("N/A")
-            }
-            val weatherCondition = remember {
-                mutableStateOf("N/A")
-            }
-            val a = weatherViewModel.weatherData.collectAsState().value
-            val context = LocalContext.current
+        }
 
-            try {
-                if (a != null) {
-                    temp.value = a?.main?.temp?.minus(273.15).toString().substring(0,4)
-                    feelsLike.value = a?.main?.feels_like?.minus(273.15).toString().substring(0,4)
-                    weatherCondition.value = a?.weather?.get(0)?.main ?: "N/A"
-                }
-
-            }catch (e:Exception){
-                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-            }
-//            val imgSourse = "http://openweathermap.org/img/w/${ a?.weather?.get(0)?.icon}.png"
-            val imgSource = "https://openweathermap.org/img/wn/${a?.weather?.get(0)?.icon}@2x.png"
+        WeatherForecastCard(weatherViewModel)
 
 
 
-            WeatherCard(temp.value, feelsLike.value, weatherCondition.value,imgSource)
-
-
-//
-
+        Column(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
+                .border(
+                    2.dp,
+                    MaterialTheme.colorScheme.inverseOnSurface,
+                    shape = RoundedCornerShape(20.dp)
+                )
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                TextButton(onClick = {
-                    //detailed current weather information screen to be implemented
-
-                }) {
-                    Text(
-                        text = "Today",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.inverseSurface,
-                        fontWeight = FontWeight.SemiBold
+                val lat = weatherViewModel.weatherData.collectAsState().value?.coord?.lat
+                val lon = weatherViewModel.weatherData.collectAsState().value?.coord?.lon
+                WeatherDetailsItem(
+                    "Location",
+                    "${lat.toString().substring(0, 4)}, ${lon.toString().substring(0, 4)}",
+                    R.drawable.location
+                )
+                val windSpeed: Double? =
+                    weatherViewModel.weatherData.collectAsState().value?.wind?.speed
+                if (windSpeed != null) {
+                    WeatherDetailsItem(
+                        "Wind Speed",
+                        (windSpeed * 1.609).toString().substring(0, 5),
+                        R.drawable.wind
                     )
                 }
-                TextButton(onClick = {
+                val humidity =
+                    weatherViewModel.weatherData.collectAsState().value?.main?.humidity
+                WeatherDetailsItem("Humidity", humidity.toString(), R.drawable.humidity)
 
-                    //Lazy column to be implemented
-
-
-                }) {
-                    Text(text = "Next 3 Days ->")
-                }
             }
-
-            WeatherForecastCard(weatherViewModel)
-
-
-
-            Column(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxWidth()
-                    .border(
-                        2.dp,
-                        MaterialTheme.colorScheme.inverseOnSurface,
-                        shape = RoundedCornerShape(20.dp)
-                    )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    val lat = weatherViewModel.weatherData.collectAsState().value?.coord?.lat
-                    val lon = weatherViewModel.weatherData.collectAsState().value?.coord?.lon
-                    WeatherDetailsItem(
-                        "Location",
-                        "${lat.toString().substring(0, 4)}, ${lon.toString().substring(0, 4)}",
-                        R.drawable.location
+                val pressure =
+                    weatherViewModel.weatherData.collectAsState().value?.main?.pressure
+                WeatherDetailsItem("Pressure", pressure.toString(), R.drawable.barometer)
+                val minTemp =
+                    weatherViewModel.weatherData.collectAsState().value?.main?.temp_min?.minus(
+                        273.15
                     )
-                    val windSpeed: Double? =
-                        weatherViewModel.weatherData.collectAsState().value?.wind?.speed
-                    if (windSpeed != null) {
-                        WeatherDetailsItem("Wind Speed", (windSpeed *  1.609).toString().substring(0,5), R.drawable.wind)
-                    }
-                    val humidity =
-                        weatherViewModel.weatherData.collectAsState().value?.main?.humidity
-                    WeatherDetailsItem("Humidity", humidity.toString(), R.drawable.humidity)
-
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    val pressure =
-                        weatherViewModel.weatherData.collectAsState().value?.main?.pressure
-                    WeatherDetailsItem("Pressure", pressure.toString(), R.drawable.barometer)
-                    val minTemp =
-                        weatherViewModel.weatherData.collectAsState().value?.main?.temp_min?.minus(
-                            273.15
-                        )
-                    WeatherDetailsItem(
-                        "Min Temp",
-                        minTemp.toString().substring(0, 4) +"°C",
-                        R.drawable.snowflake
+                WeatherDetailsItem(
+                    "Min Temp",
+                    minTemp.toString().substring(0, 4) + "°C",
+                    R.drawable.snowflake
+                )
+                val maxTemp =
+                    weatherViewModel.weatherData.collectAsState().value?.main?.temp_max?.minus(
+                        273.15
                     )
-                    val maxTemp =
-                        weatherViewModel.weatherData.collectAsState().value?.main?.temp_max?.minus(
-                            273.15
-                        )
-                    WeatherDetailsItem("Max Temp", maxTemp.toString().substring(0, 4)+"°C", R.drawable.hot)
+                WeatherDetailsItem(
+                    "Max Temp",
+                    maxTemp.toString().substring(0, 4) + "°C",
+                    R.drawable.hot
+                )
 
-                }
             }
-
         }
 
+    }
 
 
 }

@@ -86,44 +86,6 @@ suspend fun getLocations(
 
 
 
-@Composable
-fun MyApp() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
-    ) {
-        val context = LocalContext.current
-
-        Button(onClick = {
-            // Define the URL to open
-            val url = "https://www.youtube.com"
-            // Create an Intent with ACTION_VIEW and the URL
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            // Start the activity to open the URL
-            context.startActivity(intent)
-        }) {
-            Text(text = "Open URL", fontSize = 18.sp)
-        }
-        Button(onClick = {
-            // Create the share intent
-            val shareIntent = Intent(Intent.ACTION_CAMERA_BUTTON).apply {
-//                    type = "text/plain"
-//                    putExtra(Intent.EXTRA_TEXT, "This is the text to share!")
-            }
-
-            // Start the activity to share
-            context.startActivity(Intent.createChooser(shareIntent, "Share via"))
-        }) {
-            Text(text = "Share Text", fontSize = 18.sp)
-        }
-    }
-}
-
-
-
 
 
 

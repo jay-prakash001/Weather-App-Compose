@@ -324,7 +324,7 @@ fun WeatherForecastCard(weatherViewModel: WeatherViewModel) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp, 0.dp),
+            .padding(5.dp, 0.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (weatherForecast != null) {
