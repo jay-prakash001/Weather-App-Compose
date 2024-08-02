@@ -4,8 +4,8 @@ import android.util.Log
 import com.example.weatherappcompose.data.Response
 import com.example.weatherappcompose.data.api.APIInstance.api
 import com.example.weatherappcompose.data.api.WeatherApi
-import com.example.weatherappcompose.ui.models.forecast.ForecastData
-import com.example.weatherappcompose.ui.models.weather.WeatherData
+import com.example.weatherappcompose.domain.models.forecast.ForecastData
+import com.example.weatherappcompose.domain.models.weather.WeatherData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
